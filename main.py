@@ -2,6 +2,8 @@ import pygame
 import random
 import numpy as np
 import math
+import Obstacle
+import Robot
 
 # pygame setup
 pygame.init()
@@ -10,9 +12,6 @@ screen = pygame.display.set_mode(screen_size)
 clock = pygame.time.Clock()
 running = True
 dt = 0
-#cell = (pygame.Vector2,pygame.Vector2, pygame.Vector2)
-#player_pos = pygame.Vector2(100,100)
-#goal_pos = pygame.Vector2(1100,600)
 player = np.array([100.0,100.0])
 goal = np.array([1100, 600])
 
@@ -22,60 +21,44 @@ def att_force(q, goal, katt=50):
     return katt*((goal - q)/(np.linalg.norm(goal - q)))
 
 def rep_force_total(q, obstacles):
-    total_force = np.zeros_like(q)  # Initialize total force as zero vector
+    total_force = np.zeros_like(q)  # inicializa o array com 0
     for obs in obstacles:
-        force = rep_force(q, obs)  # Calculate force for each obstacle
+        force = rep_force(q, obs)  # Força de repulsão de cada obstáculo
         total_force += force
     return total_force
 
 # Vetor de repulsão do obstáculo 
 def rep_force(q, obs):
 
-  R=obs[2]
-  # Calculate the distance between the point and the obstacle center
-  distance = np.linalg.norm(q - obs[0:2])
+    R=obs[2] + 5
+    dist = np.linalg.norm(q - obs[0:2])
+    if dist <=0.001: dist=0.001 # Evitar divisão por 0
+    force = (R / dist) ** 3 * (q - obs[0:2])
 
-  # Ensure the distance is greater than a small threshold to avoid division by zero
-  threshold = 1e-6
-  distance = np.maximum(distance, threshold)
+    return force *1.3
 
-  # Repulsion force formula (increases as distance gets smaller)
-  force = (R / distance) ** 3 * (q - obs[0:2])
+def move_player(player_pos, goal, katt=10, max_speed=10):
 
-  return force
-
-def move_object(player_pos, goal, katt=0.01, max_speed=1.0):
-    """
-    Updates the position of an object towards a goal, considering max speed.
-
-    Args:
-        player_pos (numpy.ndarray): Current position of the object (2D array).
-        goal (numpy.ndarray): Goal position towards which the object moves.
-        katt (float, optional): Strength of the attractive force. Defaults to 0.01.
-        max_speed (float, optional): Maximum speed the object can move. Defaults to 1.0.
-
-    Returns:
-        numpy.ndarray: Updated position of the object.
-    """
-    force = att_force(player_pos, goal, katt) + rep_force_total(player_pos,obstacles)  # Calculate attractive force
-    # Limit the force magnitude to avoid exceeding max speed
-    force_limited = np.clip(force, -max_speed, max_speed)
-    # Update position based on force and a small time step (dt)
+    force = att_force(player_pos, goal, katt) + rep_force_total(player_pos,obstacles)  # Força total no ponto
+    force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
     new_pos = player_pos + force_limited * dt
     return new_pos
 
-obstacles = np.array([
-    [400, 350, 60],  
-    [600, 300, 50], 
+obstacles_data = np.array([
+    [400,350,60],  
+    [600,300,50], 
+    [500,350,60],
+    [750,600,30] 
 ])
+
+obstacles = []
+for obs in obstacles_data:
+    obstacles.append((obs[0], obs[1], obs[2]))
 
 XX, YY = np.meshgrid(np.arange(0, screen_size[0]+.4, .4), np.arange(0, screen_size[1]+.4, .4))
 XY = np.dstack([XX, YY]).reshape(-1, 2)
 Fatt = att_force(XY, goal)
-#Fatt_x = Fatt[:,0]
-#Fatt_y = Fatt[:,1]
 Frep = rep_force_total(XY,obstacles)
-Ft = Fatt + Frep
 
 while running:
     # poll for events
@@ -92,7 +75,7 @@ while running:
         pygame.draw.circle(screen, "blue",(obs[0], obs[1]), obs[2])
     #pygame.draw.rect(screen, "blue", (400,350,100,200))
 
-    player = move_object((player),goal,100,50)
+    player = move_player((player),goal,100,50)
     # flip() the display to put your work on screen
     pygame.display.flip()
 
