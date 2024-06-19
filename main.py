@@ -35,11 +35,15 @@ def att_force(q, goal, katt=50):
 #     return force *1.3
 
 def rep_force(q, obs, R=30):
-    
     # Obstáculo: (x, y, r)
-    #print(q)
+    # print(q)
+    # print(obs)
     v = q - obs[0:2]
-    d = np.linalg.norm(v) - obs[2]
+    if len(obs)<3:
+        d = np.linalg.norm(v) - 10
+    else:
+        d = np.linalg.norm(v) - obs[2]
+        
     
     rep = (1/d**2)*((1/d)-(1/R))*(v/d)    
     
@@ -57,7 +61,7 @@ def rep_force_total(q, obstacles):
 
 
 def move_player(player_pos, goal, katt=10, max_speed=10):
-    force = att_force(player_pos, goal, katt) + rep_force_total(player_pos,obstacles)  # Força total no ponto
+    force = att_force(player_pos[0:2], goal, katt) + rep_force_total(player_pos[0:2],obstacles)+ rep_force_total(player_pos,players) # Força total no ponto
     force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
     new_pos = player_pos + force_limited * dt
     return new_pos
@@ -118,6 +122,7 @@ while running:
         #pygame.draw.rect(screen, "blue", (400,350,100,200))
         for i in range(len(players)):
             pygame.draw.rect(screen, "red", (players[i][0], players[i][1],10,10))
+            #pygame.draw.line(screen,"green",(players[i][0] + [10,0]),(players[i][0] + [10,10]))
             player_pos = np.array(players[i][0:2])
             player = move_player(player_pos,goal,100,50)
             players[i] = player
