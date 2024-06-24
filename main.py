@@ -36,14 +36,17 @@ def att_force(q, goal, katt=50):
 
 def rep_force(q, obs, R=30):
     # Obstáculo: (x, y, r)
-    # print(q)
-    # print(obs)
+    # v: distância vetorial
+    # d: módulo da distância
+    #print(q)
+    #print(obs)
     v = q - obs[0:2]
+    if np.all(v == 0):
+        return 0
     if len(obs)<3:
         d = np.linalg.norm(v) - 10
     else:
         d = np.linalg.norm(v) - obs[2]
-        
     
     rep = (1/d**2)*((1/d)-(1/R))*(v/d)    
     
@@ -78,15 +81,15 @@ for obs in obstacles_data:
     obstacles.append((obs[0], obs[1], obs[2]))
 
 players_data = np.array([
-    [100.,100.,10,10],
-    [130.,130.,10,10],
-    [100.,130.,10,10],
-    [130.,100.,10,10],
+    [100.,100.,0.],
+    [130.,130.,0.],
+    [100.,130.,0.],
+    [130.,100.,0.],
 ]
 )
 players = []
 for player in players_data:
-    players.append((player[0], player[1], player[2], player[3]))
+    players.append((player[0], player[1], player[2]))
 
 
 XX, YY = np.meshgrid(np.arange(0, screen_size[0]+.4, .4), np.arange(0, screen_size[1]+.4, .4))
@@ -102,7 +105,9 @@ pygame.draw.circle(screen, "green", goal, 10)
 for obs in obstacles:
     pygame.draw.circle(screen, "blue", (obs[0], obs[1]), obs[2])
 for i in range(len(players)):
-    pygame.draw.rect(screen, "red", (players[i][0], players[i][1], 10, 10))
+    pygame.draw.polygon(screen, "red", [(players[i][0] -5 , players[i][1] -5),(players[i][0] -5 , players[i][1] +5),(players[i][0] +5 , players[i][1] +5), (players[i][0] +5 , players[i][1] -5)])
+    pygame.draw.line(screen,"green",(players[i][0] +5 , players[i][1] +5), (players[i][0] +5 , players[i][1] -5))
+
 pygame.display.flip()
 
 while running:
@@ -121,8 +126,8 @@ while running:
             pygame.draw.circle(screen, "blue",(obs[0], obs[1]), obs[2])
         #pygame.draw.rect(screen, "blue", (400,350,100,200))
         for i in range(len(players)):
-            pygame.draw.rect(screen, "red", (players[i][0], players[i][1],10,10))
-            #pygame.draw.line(screen,"green",(players[i][0] + [10,0]),(players[i][0] + [10,10]))
+            pygame.draw.polygon(screen, "red", [(players[i][0] -5 , players[i][1] -5),(players[i][0] -5 , players[i][1] +5),(players[i][0] +5 , players[i][1] +5), (players[i][0] +5 , players[i][1] -5)])
+            pygame.draw.line(screen,"green",(players[i][0] +5 , players[i][1] +5), (players[i][0] +5 , players[i][1] -5))
             player_pos = np.array(players[i][0:2])
             player = move_player(player_pos,goal,100,50)
             players[i] = player

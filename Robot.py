@@ -1,8 +1,7 @@
 import numpy as np
 class Robot:
-    def __init__(self, x, y, h, w):
+    def __init__(self, x, y, theta):
         self.x = x
         self.y = y
-        self.h = h
-        self.w = w
-
+        self.theta = theta
+    
