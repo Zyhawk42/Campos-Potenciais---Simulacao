@@ -75,12 +75,14 @@ while running:
         screen.fill("black")
         pygame.draw.circle(screen, "green", goal, 10)
         for obs in obstacles:
-            Obstacle.Obstacle.draw(obs,screen)    
+            Obstacle.Obstacle.draw(obs,screen)   
         for player in players:
             Robot.Robot.draw(player,screen)
+            #Robot.Robot.rotaciona(player,screen,i)
             player_pos = np.array([player.x, player.y])
+            #print(player)
             Robot.Robot.move_player(player,player_pos,goal,obstacles,players,dt,100,50)
-
+        #i+=10
         # flip() the display to put your work on screen
         pygame.display.flip()
 

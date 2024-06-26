@@ -5,5 +5,6 @@ class Obstacle:
         self.x = x
         self.y = y
         self.r = r
+        
     def draw(self, screen):
         pygame.draw.circle(screen, "blue", (self.x, self.y), self.r)
