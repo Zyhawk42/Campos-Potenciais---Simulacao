@@ -2,8 +2,8 @@ import pygame
 import random
 import numpy as np
 import math
-import Obstacle
-import Robot
+from obstacle import Obstacle
+from robot import Robot
 import forces
 
 # pygame setup
@@ -28,7 +28,7 @@ obstacles_data = np.array([
 obstacles = []
 for obs in obstacles_data:
     x,y,r = obs
-    obs = Obstacle.Obstacle(x,y,r)
+    obs = Obstacle(x,y,r)
     obstacles.append(obs)
 
 players_data = np.array([
@@ -42,9 +42,10 @@ players_data = np.array([
 players = []
 for coord in players_data:
     x,y = coord
-    player = Robot.Robot(x,y)
+    player = Robot(x,y)
     players.append(player)
 
+#print(players)
 
 XX, YY = np.meshgrid(np.arange(0, screen_size[0]+.4, .4), np.arange(0, screen_size[1]+.4, .4))
 XY = np.dstack([XX, YY]).reshape(-1, 2)
@@ -56,9 +57,9 @@ sim_running = False
 screen.fill("black")
 pygame.draw.circle(screen, "green", goal, 10)
 for obs in obstacles:
-    Obstacle.Obstacle.draw(obs,screen)
+    obs.draw(screen)
 for player in players:
-    Robot.Robot.draw(player,screen)
+    player.draw(screen)
 
 pygame.display.flip()
 
@@ -75,14 +76,13 @@ while running:
         screen.fill("black")
         pygame.draw.circle(screen, "green", goal, 10)
         for obs in obstacles:
-            Obstacle.Obstacle.draw(obs,screen)   
+            obs.draw(screen)   
         for player in players:
-            Robot.Robot.draw(player,screen)
-            #Robot.Robot.rotaciona(player,screen,i)
-            player_pos = np.array([player.x, player.y])
+            player.draw(screen)
+            #player_pos = np.array([player.x, player.y])
             #print(player)
-            Robot.Robot.move_player(player,player_pos,goal,obstacles,players,dt,100,50)
-        #i+=10
+            player.player_pos = player.move_player(goal,obstacles,players,dt,100,50)
+            print(player.player_pos)
         # flip() the display to put your work on screen
         pygame.display.flip()
 
