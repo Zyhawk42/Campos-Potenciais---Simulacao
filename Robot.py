@@ -14,14 +14,14 @@ class Robot:
     r=10
     def __init__(self, x, y, theta = 0): #theta em relação ao X da origem
         self.size = 10
-        self.x = x
-        self.y = y
-        self.player_pos = np.array([x, y])
+        # self.x = x
+        # self.y = y
+        self.position = np.array([x, y])
         self.vertices = np.empty((4,2))
         #Usa séries para multiplicar as coordenadas por (-1,1,1,-1) e (1,1,-1,-1)
         for i in range(4):
-            self.vertices[i, 0] = self.player_pos[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2) # X
-            self.vertices[i, 1] = self.player_pos[1] + (-1)**(i // 2) * (self.size/2)              # Y
+            self.vertices[i, 0] = self.position[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2) # X
+            self.vertices[i, 1] = self.position[1] + (-1)**(i // 2) * (self.size/2)              # Y
         
         #print(self.vertices)    
 
@@ -40,15 +40,14 @@ class Robot:
         #pygame.draw.line(screen,"green",(self.Xb,self.Yb), (self.Xd, self.Yd))
 
     def move_player(self,goal,obstacles, players,dt, katt=10, max_speed=10):
-        #print(self.player_pos)
-        force = forces.att_force(self.player_pos, goal, katt) + forces.rep_force_total(self.player_pos,obstacles)+ forces.rep_force_total(self.player_pos,players) # Força total no ponto
+        force = forces.att_force(self.position, goal, katt) + forces.rep_force_total(self.position,obstacles)+ forces.rep_force_total(self.position,players) # Força total no ponto
         force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
-        new_pos = self.player_pos + force_limited * dt
+        new_pos = self.position + force_limited * dt
         #print(new_pos)
-        #self.player_pos = new_pos
+        self.position = new_pos
         for i in range(4):
-            self.vertices[i, 0] = self.player_pos[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2)
-            self.vertices[i, 1] = self.player_pos[1] + (-1)**(i // 2) * (self.size/2)
+            self.vertices[i, 0] = self.position[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2)
+            self.vertices[i, 1] = self.position[1] + (-1)**(i // 2) * (self.size/2)
         return new_pos
         #print(self.vertices)
         # self.Xa = self.x-5

@@ -4,6 +4,7 @@ import numpy as np
 import math
 from obstacle import Obstacle
 from robot import Robot
+#from goal import Goal
 import forces
 
 # pygame setup
@@ -16,6 +17,18 @@ dt = 0
 goal = np.array([1100, 600])
 
 import numpy as np
+
+# goals_data = np.array([
+#     #x, y
+#     [1100,600],  
+#     [100,200] 
+# ])
+
+# goals = []
+# for goal in goals_data:
+#     x,y = goal
+#     goal = Goal(x,y)
+#     goals.append(goal)
 
 obstacles_data = np.array([
     #x, y, r
@@ -76,13 +89,11 @@ while running:
         screen.fill("black")
         pygame.draw.circle(screen, "green", goal, 10)
         for obs in obstacles:
-            obs.draw(screen)   
+            obs.draw(screen)
         for player in players:
             player.draw(screen)
-            #player_pos = np.array([player.x, player.y])
-            #print(player)
-            player.player_pos = player.move_player(goal,obstacles,players,dt,100,50)
-            print(player.player_pos)
+            player.move_player(goal,obstacles,players,dt,100,50)
+            #print(player.player_pos)
         # flip() the display to put your work on screen
         pygame.display.flip()
 
