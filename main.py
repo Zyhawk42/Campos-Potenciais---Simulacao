@@ -4,7 +4,7 @@ import numpy as np
 import math
 from obstacle import Obstacle
 from robot import Robot
-#from goal import Goal
+from goal import Goal
 import forces
 
 # pygame setup
@@ -14,21 +14,22 @@ screen = pygame.display.set_mode(screen_size)
 clock = pygame.time.Clock()
 running = True
 dt = 0
-goal = np.array([1100, 600])
+i=0
+# goal = np.array([1100, 600])
 
 import numpy as np
 
-# goals_data = np.array([
-#     #x, y
-#     [1100,600],  
-#     [100,200] 
-# ])
+goals_data = np.array([
+    #x, y
+    [1100,600],
+    [100,200]
+])
 
-# goals = []
-# for goal in goals_data:
-#     x,y = goal
-#     goal = Goal(x,y)
-#     goals.append(goal)
+goals = []
+for goal in goals_data:
+    x,y = goal
+    goal = Goal(x,y)
+    goals.append(goal)
 
 obstacles_data = np.array([
     #x, y, r
@@ -60,19 +61,20 @@ for coord in players_data:
 
 #print(players)
 
-XX, YY = np.meshgrid(np.arange(0, screen_size[0]+.4, .4), np.arange(0, screen_size[1]+.4, .4))
-XY = np.dstack([XX, YY]).reshape(-1, 2)
-Fatt = forces.att_force(XY, goal)
-Frep_obs = forces.rep_force_total(XY,obstacles)
+# XX, YY = np.meshgrid(np.arange(0, screen_size[0]+.4, .4), np.arange(0, screen_size[1]+.4, .4))
+# XY = np.dstack([XX, YY]).reshape(-1, 2)
+# Fatt = forces.att_force(XY, goals[i].position)
+# Frep_obs = forces.rep_force_total(XY,obstacles)
 sim_running = False
 
 # Renderiza o primeiro quadro
 screen.fill("black")
-pygame.draw.circle(screen, "green", goal, 10)
+pygame.draw.circle(screen, "green", goals[0].position, 10)
 for obs in obstacles:
     obs.draw(screen)
 for player in players:
     player.draw(screen)
+goals[0].draw(screen)
 
 pygame.display.flip()
 
@@ -87,12 +89,22 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     if sim_running:
         screen.fill("black")
-        pygame.draw.circle(screen, "green", goal, 10)
+        player_positions = np.array([player.position for player in players])
+        #pygame.draw.circle(screen, "green", goal, 10)
+        #print(player.position)
+        goals[i].draw(screen)
         for obs in obstacles:
             obs.draw(screen)
         for player in players:
             player.draw(screen)
-            player.move_player(goal,obstacles,players,dt,100,50)
+            player.move_player(goals[i],obstacles,players,dt,100,200)
+        distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
+        #print(distances)
+
+        
+        if all(distance <= 50 for distance in distances):
+            i = (i+1)%len(goals_data)
+        #print(i)
             #print(player.player_pos)
         # flip() the display to put your work on screen
         pygame.display.flip()

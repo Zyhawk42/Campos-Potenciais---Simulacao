@@ -22,7 +22,6 @@ class Robot:
         for i in range(4):
             self.vertices[i, 0] = self.position[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2) # X
             self.vertices[i, 1] = self.position[1] + (-1)**(i // 2) * (self.size/2)              # Y
-        
         #print(self.vertices)    
 
             # self.Xa = self.x-5
@@ -40,7 +39,7 @@ class Robot:
         #pygame.draw.line(screen,"green",(self.Xb,self.Yb), (self.Xd, self.Yd))
 
     def move_player(self,goal,obstacles, players,dt, katt=10, max_speed=10):
-        force = forces.att_force(self.position, goal, katt) + forces.rep_force_total(self.position,obstacles)+ forces.rep_force_total(self.position,players) # Força total no ponto
+        force = forces.att_force(self.position, goal.position, katt) + forces.rep_force_total(self.position,obstacles)+ forces.rep_force_total(self.position,players) # Força total no ponto
         force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
         new_pos = self.position + force_limited * dt
         #print(new_pos)

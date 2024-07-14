@@ -8,4 +8,4 @@ class Goal:
         self.position = np.array([x, y])
         
     def draw(self, screen):
-        pygame.draw.circle(screen, "green", self.position, 20)
+        pygame.draw.circle(screen, "green", self.position, 10)

@@ -2,8 +2,6 @@ import numpy as np
 
 # Vetor de atração para o goal, retorna um vetor unitário
 def att_force(q, goal, katt=50):
-    if np.all(goal-q <=10): return np.array([0,0]) 
-    #print(katt*((goal - q)/(np.linalg.norm(goal - q))))
     return katt*((goal - q)/(np.linalg.norm(goal - q)))
 
 
