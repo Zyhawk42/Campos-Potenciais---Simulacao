@@ -36,6 +36,9 @@ obstacles_data = np.array([
     [400,350,60],  
     [600,300,50], 
     [500,400,60],
+    [200,700,30],
+    [1000,300,50],
+    [1200,400,30],
     [750,600,30] 
 ])
 
@@ -97,12 +100,12 @@ while running:
             obs.draw(screen)
         for player in players:
             player.draw(screen)
-            player.move_player(goals[i],obstacles,players,dt,100,200)
+            player.move_player(goals[i],obstacles,players,dt,100,50)
         distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
         #print(distances)
 
         
-        if all(distance <= 50 for distance in distances):
+        if all(distance <= 30 for distance in distances):
             i = (i+1)%len(goals_data)
         #print(i)
             #print(player.player_pos)

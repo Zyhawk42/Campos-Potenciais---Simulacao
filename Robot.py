@@ -39,7 +39,7 @@ class Robot:
         #pygame.draw.line(screen,"green",(self.Xb,self.Yb), (self.Xd, self.Yd))
 
     def move_player(self,goal,obstacles, players,dt, katt=10, max_speed=10):
-        force = forces.att_force(self.position, goal.position, katt) + forces.rep_force_total(self.position,obstacles)+ forces.rep_force_total(self.position,players) # Força total no ponto
+        force = forces.att_force(self.position, goal.position, katt) + forces.rep_force_total(self.position,obstacles)+ forces.rep_force_total(self.position,players) + forces.rep_force_goal(self.position,goal) # Força total no ponto
         force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
         new_pos = self.position + force_limited * dt
         #print(new_pos)

@@ -50,4 +50,14 @@ def rep_force_total(q, obstacles):
         total_force += force
     return total_force
 
+def rep_force_goal(q, goal):
+    total_force = np.zeros_like(q)  # inicializa o array com 0
+    x = goal.position[0]
+    y = goal.position[1]
+    obs = np.array([x,y, 10])
+    #print(q)
+    #print(obs)
 
+    force = rep_force(q, obs)  # Força de repulsão de cada obstáculo
+    total_force += force
+    return total_force
