@@ -5,7 +5,6 @@ import math
 from obstacle import Obstacle
 from robot import Robot
 from goal import Goal
-import forces
 
 # pygame setup
 pygame.init()

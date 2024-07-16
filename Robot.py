@@ -1,6 +1,5 @@
 import numpy as np
 import pygame
-import forces
 import math
 #Polígono de centro X e vértices ABCD
 #  ___
@@ -39,7 +38,7 @@ class Robot:
         #pygame.draw.line(screen,"green",(self.Xb,self.Yb), (self.Xd, self.Yd))
 
     def move_player(self,goal,obstacles, players,dt, katt=10, max_speed=10):
-        force = forces.att_force(self.position, goal.position, katt) + forces.rep_force_total(self.position,obstacles)+ forces.rep_force_total(self.position,players) + forces.rep_force_goal(self.position,goal) # Força total no ponto
+        force = att_force(self.position, goal.position, katt) + rep_force_total(self.position,obstacles)+ rep_force_total(self.position,players) + rep_force_goal(self.position,goal) # Força total no ponto
         force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
         new_pos = self.position + force_limited * dt
         #print(new_pos)
@@ -48,30 +47,68 @@ class Robot:
             self.vertices[i, 0] = self.position[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2)
             self.vertices[i, 1] = self.position[1] + (-1)**(i // 2) * (self.size/2)
         return new_pos
-        #print(self.vertices)
-        # self.Xa = self.x-5
-        # self.Ya = self.y+5
-        # self.Xb = self.x+5
-        # self.Yb = self.y+5
-        # self.Xc = self.x-5
-        # self.Yc = self.y-5
-        # self.Xd = self.x+5
-        # self.Yd = self.y-5
-        # #Robot.rotaciona(self)
 
-    #def rotaciona(self):
-        #dist = math.sqrt( (5)**2 + (5)**2 )
-        # self.Xc +=(dist*math.cos(math.radians(self.theta)))
-        # self.Yc +=(dist*math.sin(math.radians(self.theta)))
-        # self.Xd -=(dist*math.cos(math.radians(self.theta+90)))
-        # self.Yd -=(dist*math.sin(math.radians(self.theta+90)))
-        # self.Xa +=(dist*math.cos(math.radians(self.theta+180)))
-        # self.Ya +=(dist*math.sin(math.radians(self.theta+180)))
-        # self.Xb -=(dist*math.cos(math.radians(self.theta+270)))
-        # self.Yb -=(dist*math.sin(math.radians(self.theta+270)))
-        #self.theta += 1
-        #pygame.draw.polygon(screen,(255,255,0),[(self.Xa,self.Ya),(self.Xb,self.Yb),(self.Xc,self.Yc),(self.Xd,self.Yd)])
-        #print(self.Xa - self.x)
+    # Vetor de atração para o goal, retorna um vetor unitário
+def att_force(q, goal, katt=50):
+    return katt*((goal - q)/(np.linalg.norm(goal - q)))
+
+
+# Vetor de repulsão do obstáculo 
+# def rep_force(q, obs):
+
+#     R=obs[2] + 5
+#     dist = np.linalg.norm(q - obs[0:2])
+#     if dist <=0.001: dist=0.001 # Evitar divisão por 0
+#     force = (R / dist) ** 3 * (q - obs[0:2])
+
+#     return force *1.3
+
+def rep_force(q, obs, R=30):
+    # Obstáculo: (x, y, r)
+    # v: distância vetorial
+    # d: módulo da distância
+    #obs = [obs.x, obs.y, obs.r]
+    v = q - obs[0:2]
+    if np.all(v == 0):
+        return 0
+    if len(obs)<3:
+        d = np.linalg.norm(v) - 10
+    else:
+        d = np.linalg.norm(v) - obs[2]
+    
+    rep = (1/d**2)*((1/d)-(1/R))*(v/d)    
+    
+    invalid = np.squeeze(d > R)
+    rep[invalid, :] = 0
+    #print(rep)
+    return 100000*rep
+
+def rep_force_total(q, obstacles):
+    total_force = np.zeros_like(q)  # inicializa o array com 0
+    for obs in obstacles:
+        #print(q)
+        #print(obs)
+        x = obs.position[0]
+        y = obs.position[1]
+        obs = np.array([x,y, obs.r])
+        #print(q)
+        #print(obs)
+
+        force = rep_force(q, obs)  # Força de repulsão de cada obstáculo
+        total_force += force
+    return total_force
+
+def rep_force_goal(q, goal):
+    total_force = np.zeros_like(q)  # inicializa o array com 0
+    x = goal.position[0]
+    y = goal.position[1]
+    obs = np.array([x,y, 10])
+    #print(q)
+    #print(obs)
+
+    force = rep_force(q, obs)  # Força de repulsão de cada obstáculo
+    total_force += force
+    return total_force
 
 
 
