@@ -91,7 +91,7 @@ while running:
     # fill the screen with a color to wipe away anything from last frame
     if sim_running:
         screen.fill("black")
-        player_positions = np.array([player.position for player in players])
+        player_positions = np.array([player.position[0:2] for player in players])
         #pygame.draw.circle(screen, "green", goal, 10)
         #print(player.position)
         goals[i].draw(screen)
