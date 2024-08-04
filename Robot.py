@@ -16,33 +16,27 @@ class Robot:
         # self.x = x
         # self.y = y
         self.position = np.array([x, y])
+        self.theta = theta              #theta em relação à origem
+        self.front = self.position + [(self.size/2)*math.cos(self.theta),(self.size/2)*math.sin(self.theta)]
         self.vertices = np.empty((4,2))
         #Usa séries para multiplicar as coordenadas por (-1,1,1,-1) e (1,1,-1,-1)
         for i in range(4):
             self.vertices[i, 0] = self.position[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2) # X
             self.vertices[i, 1] = self.position[1] + (-1)**(i // 2) * (self.size/2)              # Y
-        #print(self.vertices)    
-
-            # self.Xa = self.x-5
-            # self.Ya = self.y+5
-            # self.Xb = self.x+5
-            # self.Yb = self.y+5
-            # self.Xd = self.x+5
-            # self.Yd = self.y-5
-            # self.Xc = self.x-5
-            # self.Yc = self.y-5
-
-
+        
     def draw(self, screen):
         pygame.draw.polygon(screen, "red", self.vertices)
-        #pygame.draw.line(screen,"green",(self.Xb,self.Yb), (self.Xd, self.Yd))
+        pygame.draw.line(screen,"green",(self.position),self.front)
 
     def move_player(self,goal,obstacles, players,dt, katt=10, max_speed=10):
         force = att_force(self.position, goal.position, katt) + rep_force_total(self.position,obstacles)+ rep_force_total(self.position,players) + rep_force_goal(self.position,goal) # Força total no ponto
         force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
+        # print(force_limited.shape)
+        self.theta = math.atan2(force_limited[1],force_limited[0])
         new_pos = self.position + force_limited * dt
         #print(new_pos)
         self.position = new_pos
+        self.front = new_pos + [(self.size/2)*math.cos(self.theta),(self.size/2)*math.sin(self.theta)]
         for i in range(4):
             self.vertices[i, 0] = self.position[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2)
             self.vertices[i, 1] = self.position[1] + (-1)**(i // 2) * (self.size/2)
