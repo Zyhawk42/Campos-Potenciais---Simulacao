@@ -5,6 +5,7 @@ import math
 from obstacle import Obstacle
 from robot import Robot
 from goal import Goal
+from defines import *
 
 # pygame setup
 pygame.init()
@@ -38,28 +39,54 @@ obstacles_data = np.array([
     [200,700,30],
     [1000,300,50],
     [1200,400,30],
-    [750,600,30] 
+    [750,600,30], 
+    [850,640,40], 
 ])
 
 obstacles = []
+# for j in range(num_obstacle):
+#     x = random.randint(obstacle_size_max, screen_size[0] - obstacle_size_max)
+#     y = random.randint(obstacle_size_max, screen_size[1] - obstacle_size_max)
+#     r = random.randint(obstacle_size_min, obstacle_size_max)
+#     obstacle = Obstacle(x, y, r)
+#     obstacles.append(obstacle)
 for obs in obstacles_data:
     x,y,r = obs
     obs = Obstacle(x,y,r)
     obstacles.append(obs)
 
-players_data = np.array([
-    # x, y
-    [100.,100.],
-    [130.,130.],
-    [100.,130.],
-    [130.,100.],
-]
-)
+# players_data = np.array([
+#     # x, y
+#     [100.,100.],
+#     [130.,130.],
+#     [100.,130.],
+#     [130.,100.],
+# ]
+# )
+
 players = []
-for coord in players_data:
-    x,y = coord
-    player = Robot(x,y)
+positions = []
+for j in range(num_robot):
+    x = random.randint(50, robot_x_max - 10)
+    y = random.randint(50, robot_y_max - 10)
+    if (x, y) not in positions:
+        for position in positions:
+            if abs(position[0] - x) <30 or abs(position[1] - y) <30:
+                j = j-1
+                break
+        positions.append((x, y))
+    else: 
+        j = j-1
+
+for k in range(num_robot):
+    player = Robot(float(positions[k][0]), float(positions[k][1]))
     players.append(player)
+    
+
+# for coord in players_data:
+#     x,y = coord
+#     player = Robot(x,y)
+#     players.append(player)
 
 #print(players)
 
@@ -104,7 +131,7 @@ while running:
         #print(distances)
 
         
-        if all(distance <= 30 for distance in distances):
+        if all(distance <= 60 for distance in distances):
             i = (i+1)%len(goals_data)
         #print(i)
             #print(player.player_pos)

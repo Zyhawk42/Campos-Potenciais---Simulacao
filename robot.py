@@ -97,6 +97,8 @@ def rep_force_total(q, obstacles):
         #print(obs)
         x = obs.position[0]
         y = obs.position[1]
+        if(obs.r<10):
+            obs.r = 10
         obs = np.array([x,y, obs.r])
         #print(q)
         #print(obs)
