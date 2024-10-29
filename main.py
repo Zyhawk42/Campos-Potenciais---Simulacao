@@ -71,10 +71,15 @@ for j in range(num_robot):
     y = random.randint(50, robot_y_max - 10)
     if (x, y) not in positions:
         for position in positions:
-            if abs(position[0] - x) <30 or abs(position[1] - y) <30:
+            print(position)
+            if abs(position[0] - x) <50 or abs(position[1] - y) <50:
+                x = random.randint(50, robot_x_max - 10)
+                y = random.randint(50, robot_y_max - 10)
+                # print(j," reroll")
                 j = j-1
-                break
-        positions.append((x, y))
+        else:
+            positions.append((x, y))
+            # print("add")
     else: 
         j = j-1
 
@@ -128,9 +133,7 @@ while running:
             player.draw(screen)
             player.move_player(goals[i],obstacles,players,dt,100,50)
         distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
-        #print(distances)
-
-        
+        #print(distances)        
         if all(distance <= 60 for distance in distances):
             i = (i+1)%len(goals_data)
         #print(i)

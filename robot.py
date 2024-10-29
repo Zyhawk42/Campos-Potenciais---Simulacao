@@ -11,18 +11,18 @@ def imp_dt(main_dt):
 
 class Robot:
     # r=10
-    def __init__(self, x, y, theta = 0): #theta em relação ao X da origem
+    def __init__(self, x, y, z=0, theta = 0): #theta em relação ao X da origem
         self.size = 10
         # self.x = x
         # self.y = y
-        self.position = np.array([x, y, theta])
+        self.position = np.array([x, y, z, theta])
         self.theta = theta              #theta em relação à origem
         self.front = self.position[0:2] + [(self.size/2)*math.cos(self.theta),(self.size/2)*math.sin(self.theta)]
         self.vertices = np.empty((4,2))
         #Usa séries para multiplicar as coordenadas por (-1,1,1,-1) e (1,1,-1,-1)
         for i in range(4):
-            self.vertices[i, 0] = ((-1)**((i**2 + i + 2)//2)) * (self.size/2) # X
-            self.vertices[i, 1] = (-1)**(i // 2) * (self.size/2)              # Y
+            self.vertices[i,0] = ((-1)**((i**2 + i + 2)//2)) * (self.size/2) # X
+            self.vertices[i,1] = (-1)**(i // 2) * (self.size/2)              # Y
         self.r = 0.5 * (195./1000)
         self.l = 0.5 * (381./1000)
         self.wl = np.deg2rad(10)
@@ -38,7 +38,7 @@ class Robot:
     def move_player(self,goal,obstacles, players,dt, katt=10, max_speed=10):
         force = att_force(self.position[0:2], goal.position, katt) + rep_force_total(self.position[0:2],obstacles)+ rep_force_total(self.position[0:2],players) + rep_force_goal(self.position[0:2],goal) # Força total no ponto
         force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
-        # print(force_limited.shape)
+        # print(force_limited)
         theta_ant = self.theta
         # deltaTheta = self.w * dt
         deltaTheta = math.atan2(force_limited[1],force_limited[0]) - theta_ant
@@ -47,9 +47,11 @@ class Robot:
                  [-math.sin(deltaTheta), math.cos(deltaTheta)]])
         self.vertices = self.vertices@R
         new_pos = self.position[0:2] + force_limited * dt
+        # new_pos = ht_matrix(self.position,deltaTheta,force_limited[0], force_limited[1])
+        # vertices = ht_matrix(self.vertices.T,deltaTheta,force_limited[0], force_limited[1])
         #print(new_pos)
-        self.position[0:2] = new_pos
-        self.front = new_pos + [(self.size/2)*math.cos(self.theta),(self.size/2)*math.sin(self.theta)]
+        self.position[0:2] = new_pos[0:2]
+        self.front = new_pos[0:2] + [(self.size/2)*math.cos(self.theta),(self.size/2)*math.sin(self.theta)]
         # for i in range(4):
         #     self.vertices[i, 0] = self.position[0] + ((-1)**((i**2 + i + 2)//2)) * (self.size/2)
         #     self.vertices[i, 1] = self.position[1] + (-1)**(i // 2) * (self.size/2)
@@ -119,5 +121,10 @@ def rep_force_goal(q, goal):
     total_force += force
     return total_force
 
-
+def ht_matrix(P,deltaTheta, dx, dy):
+    HT = np.array([[math.cos(deltaTheta), math.sin(deltaTheta), 0, dx],
+                 [-math.sin(deltaTheta), math.cos(deltaTheta), 0, dy],
+                 [0,                     0,                    1,  0],
+                 [0,                     0,                    0,  1]])
+    return HT@P
 
