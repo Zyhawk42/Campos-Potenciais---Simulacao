@@ -1,4 +1,3 @@
-import pygame
 import random
 import numpy as np
 import math
@@ -8,9 +7,9 @@ from goal import Goal
 from defines import *
 
 # pygame setup
-pygame.init()
-screen_size = (1280,720)
-screen = pygame.display.set_mode(screen_size)
+# pygame.init()
+# screen_size = (1280,720)
+# screen = pygame.display.set_mode(screen_size)
 clock = pygame.time.Clock()
 running = True
 dt = 0
@@ -106,13 +105,14 @@ screen.fill("black")
 pygame.draw.circle(screen, "green", goals[0].position, 10)
 for obs in obstacles:
     obs.draw(screen)
-for player in players:
+for player in players: 
     player.draw(screen)
 goals[0].draw(screen)
 
 pygame.display.flip()
 
 while running:
+    clock.tick(60)
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
@@ -130,8 +130,9 @@ while running:
         for obs in obstacles:
             obs.draw(screen)
         for player in players:
-            player.draw(screen)
-            player.move_player(goals[i],obstacles,players,dt,100,50)
+            force = player.move_player(goals[i],obstacles,players,dt,100,50)
+            player.draw(screen, force)
+        hud(force)
         distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
         #print(distances)        
         if all(distance <= 60 for distance in distances):
