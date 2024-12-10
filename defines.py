@@ -12,8 +12,11 @@ robot_x_max = 150
 robot_y_max = 600
 escala = 50
 screen_dim = (1280,720)
+massa = 9 #kg
 
-
+limiar_rep = 75 #Limiar para calcular repulsão
+katt = 1000
+krep = 100000
 
 def T2D(M1, deltax, deltay):
     T = np.array([[1,0,deltax],
@@ -43,13 +46,11 @@ def ajustaangulo(angulo):
         angulo += 2 * math.pi
     return angulo
 
-def hud(items):
-    y_offset = 20  # Initial y-coordinate
-    y_spacing = 20  # Spacing between items
-
-    for item in items:
-        # Calculate the y-coordinate for this item
-        item_y = 720 - y_offset
-        screen.blit(font.render(f"x: {item}", True, "white"), (20, item_y))
-        # Increment the y-offset for the next item
-        y_offset += y_spacing
+def hud(self):
+    # screen.blit(font.render(f"wl: {np.rad2deg(wl)}", True, "white"), (20, 720 - 100))
+    # screen.blit(font.render(f"dx: {dx}", True, "white"), (20, 720 - 100))
+    screen.blit(font.render(f"vmax_dyn: {self.vmax_dyn}", True, "white"), (20, 720 - 100))
+    screen.blit(font.render(f"gamma: {self.gamma}", True, "white"), (20, 720 - 80))
+    screen.blit(font.render(f"v: {self.v}", True, "white"), (20, 720 - 60))
+    screen.blit(font.render(f"a: {self.a}", True, "white"), (20, 720 - 40))
+    screen.blit(font.render(f"w: {self.w}", True, "white"), (20, 720-20))

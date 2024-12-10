@@ -15,9 +15,6 @@ running = True
 dt = 0
 i=0
 # goal = np.array([1100, 600])
-
-import numpy as np
-
 goals_data = np.array([
     #x, y
     [1100,600],
@@ -32,14 +29,15 @@ for goal in goals_data:
 
 obstacles_data = np.array([
     #x, y, r
-    [400,350,60],  
+    [400,350,60], 
     [600,300,50], 
     [500,400,60],
     [200,700,30],
     [1000,300,50],
     [1200,400,30],
     [750,600,30], 
-    [850,640,40], 
+    [850,640,40]
+    # [150,150,30] 
 ])
 
 obstacles = []
@@ -70,7 +68,7 @@ for j in range(num_robot):
     y = random.randint(50, robot_y_max - 10)
     if (x, y) not in positions:
         for position in positions:
-            print(position)
+            # print(position)
             if abs(position[0] - x) <50 or abs(position[1] - y) <50:
                 x = random.randint(50, robot_x_max - 10)
                 y = random.randint(50, robot_y_max - 10)
@@ -83,7 +81,8 @@ for j in range(num_robot):
         j = j-1
 
 for k in range(num_robot):
-    player = Robot(float(positions[k][0]), float(positions[k][1]))
+    # player = Robot(float(positions[k][0]), float(positions[k][1]))
+    player = Robot(float(100), float(100))
     players.append(player)
     
 
@@ -127,12 +126,12 @@ while running:
         #pygame.draw.circle(screen, "green", goal, 10)
         #print(player.position)
         goals[i].draw(screen)
-        for obs in obstacles:
+        for obs in obstacles: 
             obs.draw(screen)
         for player in players:
-            force = player.move_player(goals[i],obstacles,players,dt,100,50)
+            force = player.move_player(goals[i],obstacles,players,dt)
             player.draw(screen, force)
-        hud(force)
+       
         distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
         #print(distances)        
         if all(distance <= 60 for distance in distances):
