@@ -15,7 +15,8 @@ screen_dim = (1280,720)
 massa = 9 #kg
 
 limiar_rep = 75 #Limiar para calcular repulsão
-katt = 1000
+angle_sensor = math.pi/4
+katt = 100
 krep = 100000
 
 def T2D(M1, deltax, deltay):
@@ -46,11 +47,11 @@ def ajustaangulo(angulo):
         angulo += 2 * math.pi
     return angulo
 
-def hud(self):
+def hud(self, force):
     # screen.blit(font.render(f"wl: {np.rad2deg(wl)}", True, "white"), (20, 720 - 100))
-    # screen.blit(font.render(f"dx: {dx}", True, "white"), (20, 720 - 100))
-    screen.blit(font.render(f"vmax_dyn: {self.vmax_dyn}", True, "white"), (20, 720 - 100))
-    screen.blit(font.render(f"gamma: {self.gamma}", True, "white"), (20, 720 - 80))
+    screen.blit(font.render(f"force: {force}", True, "white"), (20, 720 - 100))
+    screen.blit(font.render(f"vmax_dyn: {self.vmax_dyn}", True, "white"), (20, 720 - 80))
+    # screen.blit(font.render(f"gamma: {self.gamma}", True, "white"), (20, 720 - 80))
     screen.blit(font.render(f"v: {self.v}", True, "white"), (20, 720 - 60))
     screen.blit(font.render(f"a: {self.a}", True, "white"), (20, 720 - 40))
     screen.blit(font.render(f"w: {self.w}", True, "white"), (20, 720-20))
