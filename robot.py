@@ -64,12 +64,12 @@ class Robot:
         self.RoboC = self.corpo
         self.RoboE = self.rodaE
         self.RoboD = self.rodaD
-        self.collider = 1.4*max(np.amax(self.RoboC),np.amax(self.RoboE), np.amax(self.RoboD))
-        # print(self.collider)
+        self.colisor = 1.4*max(np.amax(self.RoboC),np.amax(self.RoboE), np.amax(self.RoboD))
+        # print(self.colisor)
         self.dx = 0
         self.dy = 0
         # dth = G[2] - P[2]
-        self.rho = 0
+        # self.rho = 0
         # print(dy,dx,dth)
         self.gamma = 0 #Ângulo da posição do robô ao objetivo
         # self.alpha = 0 #Ângulo entre a frente do robô e o objetivo
@@ -80,12 +80,19 @@ class Robot:
         # self.dif_alpha = 0
         # self.int_alpha = 0
         # self.alpha_old = 0
+        self.path = []
+        self.conta_ciclo = 0
+        self.preso = False
+        self.cont_preso = 0
+        self.cont_ciclo_preso = 0
+        self.th_old = 0
+        self.temp_goal = [0,0]
 
     def draw(self, screen, force = 0):
         
         # pygame.draw.polygon(screen, "red", self.vertices + self.position[0:2])
         # pygame.draw.line(screen,"green",(self.position[0:2]),self.front)
-        pygame.draw.line(screen,"red",self.position[0:2],self.position[0:2] + force)
+        # pygame.draw.line(screen,"red",self.position[0:2],self.position[0:2] + force)
         pygame.draw.polygon(screen, "cyan", self.RoboC[:2, :].T)
         pygame.draw.polygon(screen, "blue", self.RoboE[:2, :].T)
         pygame.draw.polygon(screen, "blue", self.RoboD[:2, :].T)
@@ -93,9 +100,31 @@ class Robot:
         pygame.draw.arc(screen,"yellow",(pygame.Rect(self.position[0] - limiar_rep,self.position[1] - limiar_rep,2*limiar_rep, 2*limiar_rep)),-self.position[2]- angle_sensor,-self.position[2] + angle_sensor,1)
         pygame.draw.line(screen, "yellow",self.position[0:2],(self.position[0] + limiar_rep * math.cos(self.position[2]- angle_sensor),self.position[1] + limiar_rep*math.sin(self.position[2]- angle_sensor)))
         pygame.draw.line(screen, "yellow",self.position[0:2],(self.position[0] + limiar_rep * math.cos(self.position[2]+ angle_sensor),self.position[1] + limiar_rep*math.sin(self.position[2]+ angle_sensor)))
+        for coord in self.path:
+                pygame.draw.circle(screen, "cyan",coord,2)
+        # pygame.draw.circle(screen,"pink",self.front,3)
         
     def move_player(self,goal,obstacles, players,dt):
-        force = att_force(self.position[0:2], goal.position, katt) + max(self.v, self.vmax_abs/10) * (rep_force_total(self.position,obstacles, self.collider))#+ rep_force_total(self.position,players, self.collider)) #+ rep_force_goal(self.position[0:2],goal) # Força total no ponto
+        force = att_force(self.position[0:2], goal.position, katt) + max(self.v, self.vmax_abs/10) * (rep_force_total(self.position,obstacles, self.colisor))#+ rep_force_total(self.position,players, self.colisor)) #+ rep_force_goal(self.position[0:2],goal) # Força total no ponto
+        # print(self.preso, self.cont_preso,math.degrees(self.th_old), math.degrees(self.position[2]), math.degrees(abs(ajustaangulo(self.position[2])) - abs(ajustaangulo(self.th_old))))
+        if self.cont_preso > limiar_preso:
+            if self.preso is False:
+                self.th_old = self.position[2]
+                # Calculate a temporary goal 90° to the side
+                self.preso = True
+                
+            # Move toward the temporary goal
+            side_angle = self.position[2] + math.pi / 2  # 90° to the side
+            self.temp_goal = self.position[0:2] + np.array([
+                    50 * math.cos(side_angle),
+                    50 * math.sin(side_angle)
+                ])
+            force = att_force(self.position[0:2], self.temp_goal, katt)
+            
+            if abs(abs(self.position[2]) - abs(self.th_old)) >=math.pi/2:
+                self.cont_preso = 0
+                self.preso = False
+
         # force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
         # print(force_limited)
         # theta_ant = self.theta
@@ -131,8 +160,10 @@ class Robot:
         dist_obs_eff = calcula_d(self.position, obstacles)
         # print(dist_obs_eff)
         # print(force - att_force(self.position[0:2], goal.position, katt), len(dist_obs_eff)) 
-        if len(dist_obs_eff) and (min(dist_obs_eff)<=1.5 * self.collider):
+        if len(dist_obs_eff) and (min(dist_obs_eff)<=1.5 * self.colisor):
             self.vmax_dyn = 0
+            self.cont_preso += 1 
+            self.cont_ciclo_preso = 0           
         elif len(dist_obs_eff) and min(dist_obs_eff) <= limiar_rep:
             self.vmax_dyn = (self.vmax_abs/(limiar_rep/(sum(dist_obs_eff)/len(dist_obs_eff))))
         else:
@@ -184,6 +215,15 @@ class Robot:
         self.RoboE = T2D(Rz2D(self.rodaE, self.th), self.position[0], self.position[1])
         self.RoboD = T2D(Rz2D(self.rodaD, self.th), self.position[0], self.position[1])
         
+        self.conta_ciclo += 1
+        x = 15  # Adiciona a posiçao atual numa lista
+        if self.conta_ciclo % x == 0:
+            self.path.append(self.position[0:2].copy())  
+            self.conta_ciclo = 0
+            
+        if self.cont_ciclo_preso >=30:
+            self.cont_preso = 0
+            self.cont_ciclo_preso = 0
         # print(RoboC.shape)
         # print(RoboD.shape)
         # print(RoboE.shape)

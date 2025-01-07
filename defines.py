@@ -15,6 +15,7 @@ screen_dim = (1280,720)
 massa = 9 #kg
 
 limiar_rep = 75 #Limiar para calcular repulsão
+limiar_preso = 15
 angle_sensor = math.pi/4
 katt = 100
 krep = 100000
