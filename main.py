@@ -15,6 +15,42 @@ running = True
 dt = 0
 i=0
 # goal = np.array([1100, 600])
+
+players = []
+positions = []
+# for j in range(num_robot):
+#     x = random.randint(50, robot_x_max - 10)
+#     y = random.randint(50, robot_y_max - 10)
+#     if (x, y) not in positions:
+#         for position in positions:
+#             # print(position)
+#             if abs(position[0] - x) <50 or abs(position[1] - y) <50:
+#                 x = random.randint(50, robot_x_max - 10)
+#                 y = random.randint(50, robot_y_max - 10)
+#                 # print(j," reroll")
+#                 j = j-1
+#         else:
+#             positions.append((x, y))
+#             # print("add")
+#     else: 
+#         j = j-1
+min_distance = 50
+for _ in range(num_robot):
+    while True:
+        x = random.randint(50, robot_x_max - 10)
+        y = random.randint(50, robot_y_max - 10)
+        too_close = any(
+            math.sqrt((px - x)**2 + (py - y)**2) < min_distance for px, py in positions
+        )
+        if not too_close:
+            positions.append((x, y))
+            break
+    
+for k in range(num_robot):
+    player = Robot(float(positions[k][0]), float(positions[k][1]))
+    # player = Robot(float(100), float(100))
+    players.append(player)
+    
 goals_data = np.array([
     #x, y
     [1100,600],
@@ -26,6 +62,8 @@ for goal in goals_data:
     x,y = goal
     goal = Goal(x,y)
     goals.append(goal)
+    for player in players:
+        player.goal_list.append(goal)
 
 obstacles_data = np.array([
     #x, y, r
@@ -61,30 +99,7 @@ for obs in obstacles_data:
 # ]
 # )
 
-players = []
-positions = []
-for j in range(num_robot):
-    x = random.randint(50, robot_x_max - 10)
-    y = random.randint(50, robot_y_max - 10)
-    if (x, y) not in positions:
-        for position in positions:
-            # print(position)
-            if abs(position[0] - x) <50 or abs(position[1] - y) <50:
-                x = random.randint(50, robot_x_max - 10)
-                y = random.randint(50, robot_y_max - 10)
-                # print(j," reroll")
-                j = j-1
-        else:
-            positions.append((x, y))
-            # print("add")
-    else: 
-        j = j-1
 
-for k in range(num_robot):
-    # player = Robot(float(positions[k][0]), float(positions[k][1]))
-    player = Robot(float(100), float(100))
-    players.append(player)
-    
 
 # for coord in players_data:
 #     x,y = coord
@@ -125,17 +140,19 @@ while running:
         player_positions = np.array([player.position[0:2] for player in players])
         #pygame.draw.circle(screen, "green", goal, 10)
         #print(player.position)
-        goals[i].draw(screen)
+        # goals[i].draw(screen)
         for obs in obstacles: 
             obs.draw(screen)
         for player in players:
-            force = player.move_player(goals[i],obstacles,players,dt)
+            force = player.move_player(player.goal_list[player.index_goal],obstacles,players,dt)
             player.draw(screen, force)
-       
-        distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
+            # print(player.position)
+            if (math.sqrt((player.position[0] - player.goal_list[player.index_goal].position[0])**2 + (player.position[1] - player.goal_list[player.index_goal].position[1])**2))<= player.colisor:
+                player.index_goal = (player.index_goal+1)%len(goals_data)
+        # distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
         #print(distances)        
-        if all(distance <= 60 for distance in distances):
-            i = (i+1)%len(goals_data)
+        # if all(distance <= 60 for distance in distances):
+        #     i = (i+1)%len(goals_data)
         #print(i)
             #print(player.player_pos)
         # flip() the display to put your work on screen

@@ -7,7 +7,7 @@ screen_size = (1280,720)
 screen = pygame.display.set_mode(screen_size)
 font = pygame.font.Font(None, 24)
 
-num_robot = 1
+num_robot = 5
 robot_x_max = 150
 robot_y_max = 600
 escala = 50
@@ -15,8 +15,8 @@ screen_dim = (1280,720)
 massa = 9 #kg
 
 limiar_rep = 75 #Limiar para calcular repulsão
-limiar_preso = 15
-angle_sensor = math.pi/4
+limiar_preso = 10
+angle_sensor = math.radians(45)
 katt = 100
 krep = 100000
 
@@ -50,7 +50,8 @@ def ajustaangulo(angulo):
 
 def hud(self, force):
     # screen.blit(font.render(f"wl: {np.rad2deg(wl)}", True, "white"), (20, 720 - 100))
-    screen.blit(font.render(f"force: {force}", True, "white"), (20, 720 - 100))
+    # screen.blit(font.render(f"force: {force}", True, "white"), (20, 720 - 100))
+    screen.blit(font.render(f"stuck_counter: {self.cont_preso}", True, "white"), (20, 720 - 100))
     screen.blit(font.render(f"vmax_dyn: {self.vmax_dyn}", True, "white"), (20, 720 - 80))
     # screen.blit(font.render(f"gamma: {self.gamma}", True, "white"), (20, 720 - 80))
     screen.blit(font.render(f"v: {self.v}", True, "white"), (20, 720 - 60))
