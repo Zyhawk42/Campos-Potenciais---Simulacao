@@ -6,6 +6,7 @@ pygame.init()
 screen_size = (1280,720)
 screen = pygame.display.set_mode(screen_size)
 font = pygame.font.Font(None, 24)
+sim_running = False
 
 num_robot = 5
 robot_x_max = 150

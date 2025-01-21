@@ -12,5 +12,5 @@ class Obstacle:
     def draw(self, screen):
         pygame.draw.circle(screen, "blue", self.position, self.r)
         # pygame.draw.circle(screen, "orange", self.position,1)
-        # pygame.draw.circle(screen, "yellow", self.position, self.r + limiar_rep,2)
+        pygame.draw.circle(screen, "yellow", self.position, self.r + limiar_rep,2)
         

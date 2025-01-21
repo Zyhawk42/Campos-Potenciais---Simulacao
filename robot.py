@@ -65,6 +65,7 @@ class Robot:
         self.RoboE = self.rodaE
         self.RoboD = self.rodaD
         self.colisor = 1.4*max(np.amax(self.RoboC),np.amax(self.RoboE), np.amax(self.RoboD))
+        self.colidiu = False
         # print(self.colisor)
         self.dx = 0
         self.dy = 0
@@ -95,25 +96,27 @@ class Robot:
         
         # pygame.draw.polygon(screen, "red", self.vertices + self.position[0:2])
         # pygame.draw.line(screen,"green",(self.position[0:2]),self.front)
-        # pygame.draw.line(screen,"red",self.position[0:2],self.position[0:2] + force)
+        pygame.draw.line(screen,"red",self.position[0:2],self.position[0:2] + force)
         pygame.draw.polygon(screen, "cyan", self.RoboC[:2, :].T)
         pygame.draw.polygon(screen, "blue", self.RoboE[:2, :].T)
         pygame.draw.polygon(screen, "blue", self.RoboD[:2, :].T)
         pygame.draw.circle(screen, "black", (self.position[0], self.position[1]),5)
-        pygame.draw.circle(screen, "yellow", (self.position[0], self.position[1]),self.colisor + limiar_rep,1)
+        pygame.draw.circle(screen, "yellow", (self.position[0], self.position[1]),self.colisor,1)
         pygame.draw.circle(screen, "green", self.goal_list[self.index_goal].position, 10)
-        pygame.draw.arc(screen,"yellow",(pygame.Rect(self.position[0] - limiar_rep,self.position[1] - limiar_rep,2*limiar_rep, 2*limiar_rep)),-self.position[2]- angle_sensor,-self.position[2] + angle_sensor,1)
-        pygame.draw.line(screen, "yellow",self.position[0:2],(self.position[0] + limiar_rep * math.cos(self.position[2]- angle_sensor),self.position[1] + limiar_rep*math.sin(self.position[2]- angle_sensor)))
-        pygame.draw.line(screen, "yellow",self.position[0:2],(self.position[0] + limiar_rep * math.cos(self.position[2]+ angle_sensor),self.position[1] + limiar_rep*math.sin(self.position[2]+ angle_sensor)))
+        # pygame.draw.arc(screen,"yellow",(pygame.Rect(self.position[0] - limiar_rep,self.position[1] - limiar_rep,2*limiar_rep, 2*limiar_rep)),-self.position[2]- angle_sensor,-self.position[2] + angle_sensor,1)
+        # pygame.draw.line(screen, "yellow",self.position[0:2],(self.position[0] + limiar_rep * math.cos(self.position[2]- angle_sensor),self.position[1] + limiar_rep*math.sin(self.position[2]- angle_sensor)))
+        # pygame.draw.line(screen, "yellow",self.position[0:2],(self.position[0] + limiar_rep * math.cos(self.position[2]+ angle_sensor),self.position[1] + limiar_rep*math.sin(self.position[2]+ angle_sensor)))
         for coord in self.path:
                 pygame.draw.circle(screen, "cyan",coord,2)
         # pygame.draw.circle(screen,"pink",self.front,3)
         
     def move_player(self,goal,obstacles, players,dt):
+        players = (player for player in players if player is not self)
         # print(self.goal_list)
         force = att_force(self.position[0:2], goal.position, katt) + max(self.v, self.vmax_abs/10) * (rep_force_total(self.position,obstacles, self.colisor)+ rep_force_total(self.position,players, self.colisor) + rep_force_total(self.position + [0,0,math.pi/2],obstacles, self.colisor)/100 + rep_force_total(self.position + [0,0,-math.pi/2],obstacles, self.colisor)/100 ) #+ rep_force_goal(self.position[0:2],goal) # Força total no ponto
         # # print(self.preso, self.cont_preso,math.degrees(self.th_old), math.degrees(self.position[2]), math.degrees(abs(ajustaangulo(self.position[2])) - abs(ajustaangulo(self.th_old))))
-        check_preso(self, goal, players)
+        if self.cont_preso > limiar_preso:
+            force = trat_preso(self, goal, players)
         # force_limited = np.clip(force, -max_speed, max_speed) # Limita a velocidade do player
         # print(force_limited)
         # theta_ant = self.theta
@@ -149,16 +152,27 @@ class Robot:
         dist_obs_eff = calcula_d(self.position, obstacles, players)
         # print(dist_obs_eff)
         # print(force - att_force(self.position[0:2], goal.position, katt), len(dist_obs_eff)) 
-        if len(dist_obs_eff) and (min(dist_obs_eff)<=1.5 * self.colisor):
+        if len(dist_obs_eff) and (min(dist_obs_eff) <= self.colisor):
+            self.colidiu = True
+            sim_running = not sim_running
+            print("1")
+        elif len(dist_obs_eff) and (min(dist_obs_eff) <= 1.5 * self.colisor):
             self.vmax_dyn = 0
             self.cont_preso += 1 
-            self.cont_ciclo_livre = 0           
+            self.cont_ciclo_livre = 0
+            print("2")           
         elif len(dist_obs_eff) and min(dist_obs_eff) <= limiar_rep:
             self.vmax_dyn = (self.vmax_abs/(limiar_rep/(sum(dist_obs_eff)/len(dist_obs_eff))))
-            self.cont_ciclo_livre +=1
+            self.cont_ciclo_livre += 1
+            print("3")   
+        elif np.linalg.norm(self.position[0:2] - self.goal_list[self.index_goal].position) <=limiar_rep:
+            self.vmax_dyn = self.vmax_abs * np.linalg.norm((self.goal_list[self.index_goal].position - self.position[0:2]))/limiar_rep
+            self.cont_ciclo_livre += 1
+            print("4")   
         else:
             self.vmax_dyn = self.vmax_abs
-            self.cont_ciclo_livre +=1
+            self.cont_ciclo_livre += 1
+            print("5")   
         # a_dir = np.sign(math.cos(math.atan2(force[1],force[0]) - self.position[2]))
         self.a = np.clip((2*np.linalg.norm(force)/massa), -self.a_max, self.a_max)
         self.v = np.clip(self.v_old + (self.a) * dt, -self.vmax_dyn, self.vmax_dyn)
@@ -168,7 +182,7 @@ class Robot:
         #     self.v = np.clip(self.v_old + (self.a) * dt, -self.vmax, self.vmax)
         self.v_old = self.v
         self.a_old = self.a
-        # hud(self,force)
+        hud(self,force)
         # self.v = np.clip(np.linalg.norm(force), -self.vmax, self.vmax)
         # self.wl = ((self.v + self.wr)/self.r)
         # self.wr = ((self.v - self.wl)/self.r)
@@ -230,6 +244,7 @@ class Robot:
         return force
 # Vetor de atração para o goal, retorna um vetor unitário
 def att_force(q, goal, katt):
+    # print((goal - q)/(np.linalg.norm(goal - q)))
     return katt*((goal - q)/(np.linalg.norm(goal - q)))
 
 
@@ -312,9 +327,11 @@ def calcula_d(q, obstacles, players):
         if d <= limiar_rep and gamma < angle_sensor:
             distancias.append(int(d))
     for player in players:
-        d = np.linalg.norm(q[0:2] - obs.position[0:2]) - obs.r
-        gamma = calcula_gamma(q, obs.position[0:2])
-        if d <= limiar_rep and gamma < angle_sensor:
+        if all(q[0:2]) == all(player.position[0:2]):
+            continue
+        d = np.linalg.norm(q[0:2] - player.position[0:2]) - 2*player.colisor
+        gamma_p = calcula_gamma(q, player.position[0:2])
+        if d <= 3*player.colisor and gamma_p < angle_sensor:
             distancias.append(int(d))
     return distancias
 
@@ -323,25 +340,26 @@ def calcula_gamma(q, obs):
     angle =(ajustaangulo(math.atan2(obs[1] - q[1],obs[0] - q[0])) - q[2])
     return abs(angle)
 
-def check_preso (self, goal, players):
-    if self.cont_preso > limiar_preso:
-            if self.preso is False:
-                self.th_old = self.position[2]
-                # Calcula um goal temporário 90º para o lado
-                self.preso = True
-                if math.atan2(self.position[1] - goal.position[1], self.position[0] - goal.position[0]) >=0:
-                    self.lado_rot_preso = 1
-                else:
-                    self.lado_rot_preso = -1
-            # Atração para o goal temporário
-            side_angle = self.position[2] + self.lado_rot_preso * math.pi / 2 
-            self.temp_goal = self.position[0:2] + np.array([
-                    50 * math.cos(side_angle),
-                    50 * math.sin(side_angle)
-                ])
-            force = att_force(self.position[0:2], self.temp_goal, katt) + 10* rep_force_total(self.position,players, self.colisor)
-            
-            if abs(abs(self.position[2]) - abs(self.th_old)) >= math.pi/2:
-                self.cont_preso = 0
-                self.preso = False
-                self.temp_goal = [0,0]
+def trat_preso (self, goal, players):
+    
+        if self.preso is False:
+            self.th_old = self.position[2]
+            # Calcula um goal temporário 90º para o lado
+            self.preso = True
+            if math.atan2(self.position[1] - goal.position[1], self.position[0] - goal.position[0]) >=0:
+                self.lado_rot_preso = 1
+            else:
+                self.lado_rot_preso = -1
+        # Atração para o goal temporário
+        side_angle = self.position[2] + self.lado_rot_preso * math.pi / 2 
+        self.temp_goal = self.position[0:2] + np.array([
+                50 * math.cos(side_angle),
+                50 * math.sin(side_angle)
+            ])
+        force = att_force(self.position[0:2], self.temp_goal, katt) + 10* rep_force_total(self.position,players, self.colisor)
+        
+        if abs(abs(self.position[2]) - abs(self.th_old)) >= math.pi/2:
+            self.cont_preso = 0
+            self.preso = False
+            self.temp_goal = [0,0]
+        return force

@@ -5,7 +5,6 @@ from obstacle import Obstacle
 from robot import Robot
 from goal import Goal
 from defines import *
-
 # pygame setup
 # pygame.init()
 # screen_size = (1280,720)
@@ -112,7 +111,7 @@ for obs in obstacles_data:
 # XY = np.dstack([XX, YY]).reshape(-1, 2)
 # Fatt = forces.att_force(XY, goals[i].position)
 # Frep_obs = forces.rep_force_total(XY,obstacles)
-sim_running = False
+# sim_running = False
 
 # Renderiza o primeiro quadro
 screen.fill("black")
@@ -149,6 +148,7 @@ while running:
             # print(player.position)
             if (math.sqrt((player.position[0] - player.goal_list[player.index_goal].position[0])**2 + (player.position[1] - player.goal_list[player.index_goal].position[1])**2))<= player.colisor:
                 player.index_goal = (player.index_goal+1)%len(goals_data)
+            
         # distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
         #print(distances)        
         # if all(distance <= 60 for distance in distances):
