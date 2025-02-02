@@ -48,6 +48,7 @@ for _ in range(num_robot):
 for k in range(num_robot):
     player = Robot(float(positions[k][0]), float(positions[k][1]))
     # player = Robot(float(100), float(100))
+    print(player.position[0:2])
     players.append(player)
     
 goals_data = np.array([
@@ -66,14 +67,14 @@ for goal in goals_data:
 
 obstacles_data = np.array([
     #x, y, r
-    [400,350,60],
-    [600,300,50], 
-    [500,450,60],
-    [200,700,30], 
-    [1000,300,50],
-    [1200,400,30],
-    [750,600,30], 
-    [850,640,40]
+    # [400,350,60],
+    # [600,300,50], 
+    # [500,450,60],
+    # [200,700,30], 
+    # [1000,300,50],
+    # [1200,400,30],
+    # [750,600,30], 
+    # [850,640,40]
     # [150,150,30] 
 ])
 

@@ -15,7 +15,8 @@ escala = 50
 screen_dim = (1280,720)
 massa = 9 #kg
 
-limiar_rep = 75 #Limiar para calcular repulsão
+limiar_rep = 75 #Limiar para calcular repulsão aos obstáculos
+limiar_rep_boids = 2*limiar_rep/3
 limiar_preso = 10
 angle_sensor = math.radians(45)
 katt = 100
@@ -58,3 +59,12 @@ def hud(self, force):
     screen.blit(font.render(f"v: {self.v}", True, "white"), (20, 720 - 60))
     screen.blit(font.render(f"a: {self.a}", True, "white"), (20, 720 - 40))
     screen.blit(font.render(f"w: {self.w}", True, "white"), (20, 720-20))
+        # Calculate position for speed text (adjust according to your player's position and size)
+    speed_text_pos = (int(self.position[0]), int(self.position[1]) - 30)  # Adjust -20 for proper position above player
+    
+    # Render text surface
+    # font = pygame.font.Font(None, 24)  # Choose your font and size
+    speed_text = font.render(f"{self.v:.2f}", True, (255, 255, 255))  # Render speed with two decimal places
+    
+    # Draw speed text on the main display surface
+    screen.blit(speed_text, speed_text_pos)
