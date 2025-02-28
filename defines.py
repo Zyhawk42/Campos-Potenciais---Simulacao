@@ -50,7 +50,7 @@ def ajustaangulo(angulo):
         angulo += 2 * math.pi
     return angulo
 
-def hud(self, force):
+def hud(self, force, num):
     # screen.blit(font.render(f"wl: {np.rad2deg(wl)}", True, "white"), (20, 720 - 100))
     # screen.blit(font.render(f"force: {force}", True, "white"), (20, 720 - 100))
     screen.blit(font.render(f"stuck_counter: {self.cont_preso}", True, "white"), (20, 720 - 100))
@@ -61,10 +61,13 @@ def hud(self, force):
     screen.blit(font.render(f"w: {self.w}", True, "white"), (20, 720-20))
         # Calculate position for speed text (adjust according to your player's position and size)
     speed_text_pos = (int(self.position[0]), int(self.position[1]) - 30)  # Adjust -20 for proper position above player
+    num_text_pos = (int(self.position[0]), int(self.position[1]) - 60)  # Adjust -20 for proper position above player
     
     # Render text surface
     # font = pygame.font.Font(None, 24)  # Choose your font and size
-    speed_text = font.render(f"{self.v:.2f}", True, (255, 255, 255))  # Render speed with two decimal places
+    speed_text = font.render(f"{np.linalg.norm(self.v):.2f}", True, (255, 255, 255))  # Render speed with two decimal places
+    num_text = font.render(f"{num}", True, (255, 255, 255))  # Render speed with two decimal places
     
     # Draw speed text on the main display surface
     screen.blit(speed_text, speed_text_pos)
+    screen.blit(num_text, num_text_pos)

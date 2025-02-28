@@ -16,6 +16,12 @@ i=0
 # goal = np.array([1100, 600])
 
 players = []
+players_data = [[ 63 , 120 ],
+[ 110, 79 ],
+[ 121 , 531],
+[ 69 , 310 ],
+[ 56, 250 ]]
+
 positions = []
 # for j in range(num_robot):
 #     x = random.randint(50, robot_x_max - 10)
@@ -45,10 +51,15 @@ for _ in range(num_robot):
             positions.append((x, y))
             break
     
-for k in range(num_robot):
-    player = Robot(float(positions[k][0]), float(positions[k][1]))
-    # player = Robot(float(100), float(100))
-    print(player.position[0:2])
+# for k in range(num_robot):
+#     player = Robot(float(positions[k][0]), float(positions[k][1]))
+#     # player = Robot(float(100), float(100))
+#     print("[",int(player.position[0]), ",", int(player.position[1]), "],")
+#     players.append(player)
+
+for player in players_data:
+    x,y = player
+    player = Robot(float(x),float(y))
     players.append(player)
     
 goals_data = np.array([
@@ -143,13 +154,20 @@ while running:
         # goals[i].draw(screen)
         for obs in obstacles: 
             obs.draw(screen)
+        g = 0
         for player in players:
             force = player.move_player(player.goal_list[player.index_goal],obstacles,players,dt)
             player.draw(screen, force)
             # print(player.position)
             if (math.sqrt((player.position[0] - player.goal_list[player.index_goal].position[0])**2 + (player.position[1] - player.goal_list[player.index_goal].position[1])**2))<= player.colisor:
+                # player.index_goal = (player.index_goal+1)%len(goals_data)
+                player.goal_reached = True
+            if player.goal_reached is True:
+                g +=1   
+        if g == num_robot:
+            for player in players:
                 player.index_goal = (player.index_goal+1)%len(goals_data)
-            
+                player.goal_reached = False
         # distances = np.linalg.norm(player_positions - goals[i].position, axis=1)    
         #print(distances)        
         # if all(distance <= 60 for distance in distances):

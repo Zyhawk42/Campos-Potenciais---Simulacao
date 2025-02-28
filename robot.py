@@ -29,8 +29,9 @@ class Robot:
         self.l = 0.5 * (381./1000)
         self.wl = np.deg2rad(10)
         self.wr = np.deg2rad(10)
-        self.v = (self.r/2) * (self.wr + self.wl)#velocidade linear
-        self.v_old = 0
+        # self.v = (self.r/2) * (self.wr + self.wl)#velocidade linear
+        self.v = np.array([0,0])
+        self.v_old = 1
         self.vmax_abs = 100
         self.vmax_dyn = self.vmax_abs
         self.wmax = math.radians(60)
@@ -38,6 +39,8 @@ class Robot:
         self.a = 0
         self.a_old = 0
         self.a_max = 20
+        self.stopped = False
+        # self.stop_countdown = 0
         # self.v = self.r/2 * (self.wr + self.wl) #velocidade linear
         # self.w = self.r/(2*self.l) * (self.wr - self.wl) #velocidade angular
         self.corpo = np.array([[100   , -190.5],      
@@ -91,6 +94,8 @@ class Robot:
         self.temp_goal = [0,0]
         self.goal_list = []
         self.index_goal = 0
+        self.goal_reached = False
+        # print(2.5*self.colisor)
 
     def draw(self, screen, force = 0):
         
@@ -118,7 +123,7 @@ class Robot:
         # v1 = ((sum(player.position[0:2] for player in players)/num_robot-1) - self.position[0:2])/10
         boids_calc = boids(self, players)
         # print(boids_calc)  
-        force = 10*boids_calc #+ att_force(self.position[0:2], goal.position, katt) + max(self.v, self.vmax_abs/10) * (rep_force_total(self.position,obstacles, self.colisor) + rep_force_total(self.position + [0,0,math.pi/2],obstacles, self.colisor)/10 + rep_force_total(self.position + [0,0,-math.pi/2],obstacles, self.colisor)/10) #+ rep_force_total(self.position,players, self.colisor)) #+ rep_force_goal(self.position[0:2],goal) # Força total no ponto
+        force = boids_calc #+ att_force(self.position[0:2], goal.position, katt) + max(self.v, self.vmax_abs/10) * (rep_force_total(self.position,obstacles, self.colisor) + rep_force_total(self.position + [0,0,math.pi/2],obstacles, self.colisor)/10 + rep_force_total(self.position + [0,0,-math.pi/2],obstacles, self.colisor)/10) #+ rep_force_total(self.position,players, self.colisor)) #+ rep_force_goal(self.position[0:2],goal) # Força total no ponto
         # # print(self.preso, self.cont_preso,math.degrees(self.th_old), math.degrees(self.position[2]), math.degrees(abs(ajustaangulo(self.position[2])) - abs(ajustaangulo(self.th_old))))
         if self.cont_preso > limiar_preso:
             force = trat_preso(self, goal, players)
@@ -188,8 +193,8 @@ class Robot:
         #     self.cont_ciclo_livre += 1
         #     # print("5")   
         # a_dir = np.sign(math.cos(math.atan2(force[1],force[0]) - self.position[2]))
-        self.a = np.clip((2*np.linalg.norm(force)/massa), -self.a_max, self.a_max) - self.a_old
-        self.v = np.clip(self.v_old + (self.a) * dt, -self.vmax_dyn, self.vmax_dyn)
+        # self.a = np.clip((2*np.linalg.norm(force)/massa), -self.a_max, self.a_max)# - self.a_old
+        # self.v = np.clip(self.v_old + (self.a) * dt, -self.vmax_dyn, self.vmax_dyn)
         # self.v = np.clip(self.v, -self.vmax_abs, self.vmax_abs)
         # if(self.a - self.a_old) <0:
         #     self.v = np.clip(self.v_old + (self.a) * dt, -self.vmax, self.vmax)
@@ -197,7 +202,8 @@ class Robot:
         #     self.v = np.clip(self.v_old + (self.a) * dt, -self.vmax, self.vmax)
         self.v_old = self.v
         self.a_old = self.a
-        hud(self,force)
+        num = players.index(self)
+        hud(self,force, num)
         # self.v = np.clip(np.linalg.norm(force), -self.vmax, self.vmax)
         # self.wl = ((self.v + self.wr)/self.r)
         # self.wr = ((self.v - self.wl)/self.r)
@@ -211,13 +217,15 @@ class Robot:
         # print(th)
         # deltaS = self.v*dt
         # deltath = self.w*dt
-        dPdt = np.array([[self.v * math.cos(self.th)],
-            [self.v * math.sin(self.th)],
-            [self.w]])
+        # dPdt = np.array([[self.v * math.cos(self.th)],
+        #     [self.v * math.sin(self.th)],
+        #     [self.w]])
 
             
         # P = P + deltaP
-        self.position = self.position + dPdt.flatten() * dt
+        # P = P + deltaP
+        # self.position = self.position + dPdt.flatten() * dt
+        self.position[0:2] = self.position[0:2] + self.v*dt
         self.position[2] = ajustaangulo(self.position[2])
         # deltaP = np.array([deltaS*math.cos(self.th + deltath/2),
         #                deltaS*math.sin(self.th + deltath/2),
@@ -257,6 +265,7 @@ class Robot:
         # RoboD_xy = RoboD[:2, :]
         # print(RoboD_xy)
         return force
+    
 # Vetor de atração para o goal, retorna um vetor unitário
 def att_force(q, goal, katt):
     # print((goal - q)/(np.linalg.norm(goal - q)))
@@ -383,41 +392,60 @@ def boids(self, players):
     v1 = 0
     v2 = [0,0]
     cm = [0,0] # "centro de massa" para visualização
+    num = players.index(self)
     for player in players: #Regra 1 : Atração ao centro de massa do grupo
         cm += player.position[0:2]
-        if player is not self:
-            v1 += v1 + player.position[0:2] - self.position[0:2]
-            dvec = player.position[0:2]- self.position[0:2]
+        # if player is not self:
+        for other in players:
+            v1 += other.position[0:2] - self.position[0:2]
+            dvec = other.position[0:2]- self.position[0:2]
             dist = np.linalg.norm(dvec)
-            if dist <= limiar_rep_boids: #Regra 2 : Repulsão entre integrantes
-                v2 = 2*(v2 - (dvec))
-                if dist <= 3*self.colisor and dist> 2.5*self.colisor:
-                    # print("C")
-                    self.vmax_dyn = max(self.vmax_dyn * (dist/3*self.colisor), 20)
-                # elif dist <= 2.5*self.colisor:
-                #     self.vmax_dyn = 0
-                # self.v = (self.v *dist/player.v *limiar_rep_boids)
+            if other is not self:
+                if dist <= limiar_rep: #Regra 2 : Repulsão entre integrantes
+                    v2 = self.v*(v2 - (dvec))/self.vmax_abs
+                    if dist <= 2.5*self.colisor and other.stopped is False:
+                        # if other.vmax_dyn != 0:
+                            self.vmax_dyn = 0
+                            self.stopped = True
+                            # print("stop", players.index(self))
+                    # elif dist <= limiar_rep and dist> 3*self.colisor:
+                    else:
+                        # print("rep",",",num,",",players.index(other))
+                        # self.vmax_dyn = np.clip(self.vmax_dyn * (dist/3*self.colisor),10,100)
+                        self.vmax_dyn *= 0.99
+                        self.stopped = False
+                    # self.v = (self.v *dist/other.v *limiar_rep_boids)
                 else:
                     self.vmax_dyn = self.vmax_abs
-    v1 /= 100*(num_robot - 1)    
+                    self.stopped = False
+                    # print(players.index(self),"reset")
+                # v2 = v2 - krep*((1/dist**2) * (dvec/dist))
+                    
+                # print(v2)
+    v1 /= (num_robot - 1)    
     cm /= num_robot
     dist_cm = np.linalg.norm([self.position[0]-cm[0],self.position[1]- cm[1]])
     if ajustaangulo(abs(math.atan2(cm[1] - self.position[1], cm[0] - self.position[0])))>math.pi/2:
-        self.v = self.v * (dist_cm/limiar_rep_boids)
+        self.vmax_dyn = min(self.vmax_dyn * (dist_cm/limiar_rep), 100)
     pygame.draw.circle(screen,"white",cm,5)  
     # print(v2)
-    pvJ = 0
-    for player in players:
-        if player is not self:
-            pvJ += self.v
-    if num_robot>1:
-        pvJ /= num_robot - 1
-    else:
-        self.v = (pvJ - self.v)/8
     v4 = 0
     v4 = (self.goal_list[self.index_goal].position - self.position[0:2]) /25 #Regra 4 : Tendência a um local específico
-    dist_goal = np.linalg.norm(self.position[0:2] - self.goal_list[self.index_goal].position)
-    if dist_goal <= limiar_rep:
-        self.vmax_dyn = max(self.vmax_dyn * (dist_goal/limiar_rep), 20)
     # print(v4)
-    return v1 + v2 + v4
+    # dist_goal = np.linalg.norm(self.position[0:2] - self.goal_list[self.index_goal].position)
+    # if dist_goal <= limiar_rep:
+    #     self.vmax_dyn = max(self.vmax_abs * (dist_goal/limiar_rep), 20)
+    #     v4 *= 10*limiar_rep/dist
+    # print(v4)
+    
+    pvJ = np.array([0,0])
+    for player in players: #Regra 3: Tentar manter a mesma velocidade
+        if player is not self:
+            pvJ = pvJ + self.v
+            print(pvJ)
+    if num_robot>1:
+        pvJ /= num_robot - 1
+    # else:
+    self.v = (pvJ + self.vmax_dyn)/8
+    print(self.v)
+    return v1 + v2 + 1000*v4
